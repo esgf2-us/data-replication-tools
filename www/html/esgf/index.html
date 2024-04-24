@@ -1,0 +1,330 @@
+<!doctype html>
+<html lang="en">
+<head><title>ESGF Data Replication</title>
+<meta name="author" content="Lukasz Lacinski, Globus, University of Chicago">
+<style media="screen" type="text/css">
+body {
+    font-family: Tahoma, sans-serif;
+    font-size: 12px
+}
+table {
+    border-collapse: collapse;
+}
+th {
+    font-family: Tahoma, sans-serif;
+    padding: 4px;
+    font-size: 12px;
+    border: 1px solid #303030;
+}
+td {
+    font-family: Tahoma, sans-serif;
+    padding: 2px;
+    font-size: 12px;
+    border: 1px solid #303030;
+}
+.td {
+    font-family: Tahoma, sans-serif;
+    padding: 2px;
+    font-size: 12px;
+    text-align: right;
+}
+.bg {
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    background-color: #00cc00;
+    z-index: -1;
+}
+.sep {
+    height: 2px;
+    padding: 0;
+    background-color: #303030
+}
+.xtt {
+    visibility: hidden;
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 2;
+    font: normal 8pt sans-serif;
+    padding: 3px;
+    border: solid 1px;
+}
+.gap {
+    width: 6px;
+    height: 2px;
+    padding: 0;
+    border: none;
+}
+</style>
+<script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+<script type="text/javascript">
+
+var tables = []
+
+google.charts.load('current', {'packages':['corechart', 'line']})
+
+google.charts.setOnLoadCallback(preDrawCharts);
+
+function preDrawCharts() {
+    $.get("api/charts", function(data) {
+        drawPieCharts(data)
+    })
+    .fail(function(error) {
+        console.log(error)
+    })
+
+    $.get("api/charts/progress", function(data) {
+        drawProgressCharts(data)
+    })
+    .fail(function(error) {
+        console.log(error)
+    })
+}
+
+function drawPieCharts(data) {
+    console.log("drawPieCharts", data)
+    Object.keys(data).forEach(function(destination) {
+        drawPieChart(destination, data[destination])
+    })
+}
+
+function drawPieChart(destination, bytes_transferred) {
+    console.log("drawPieChart", destination, bytes_transferred)
+    if (destination == 'ALCF')
+        bytes_transferred += 419530595422151
+    else if (destination == 'OLCF')
+        bytes_transferred += 593189284198020
+    var bytes_remaining = 8182644448359333 - bytes_transferred
+    bytes_transferred /= 1024 * 1024 * 1024 * 1024
+    bytes_remaining /= 1024 * 1024 * 1024 * 1024
+    var data = google.visualization.arrayToDataTable([
+        ['Climate Data', 'TB'],
+        ['Transferred ' + bytes_transferred.toFixed(0) + ' TB', bytes_transferred],
+        ['Remaining ' + bytes_remaining.toFixed(0) + ' TB', bytes_remaining],
+    ])
+    var options = {
+        title: 'Data transferred to ' + destination,
+        legend: {position: 'bottom'}
+    }
+
+    var chart = new google.visualization.PieChart(document.getElementById('piechart_' + destination))
+    chart.draw(data, options)
+}
+
+function drawProgressCharts(sites) {
+    console.log("drawProgressCharts", sites)
+    var llnl_alcf = sites[0].transfers
+    var olcf_alcf = sites[1].transfers
+    var llnl_olcf = sites[2].transfers
+    var alcf_olcf = sites[3].transfers
+    console.log(llnl_alcf.length, olcf_alcf.length, llnl_olcf.length, alcf_olcf.length)
+
+    var data = new google.visualization.DataTable();
+    data.addColumn('date', 'Date')
+    data.addColumn('number', 'to ALCF')
+    data.addColumn('number', 'to OLCF')
+
+    var data_rate = new google.visualization.DataTable();
+    data_rate.addColumn('date', 'Date')
+    data_rate.addColumn('number', 'LLNL->ALCF')
+    data_rate.addColumn('number', 'OLCF->ALCF')
+    data_rate.addColumn('number', 'LLNL->OLCF')
+    data_rate.addColumn('number', 'ALCF->OLCF')
+
+    var llnl_alcf_sum = 0
+    var olcf_alcf_sum = 0
+    var llnl_olcf_sum = 0
+    var alcf_olcf_sum = 0
+    var llnl_alcf_h = 0
+    var olcf_alcf_h = 0
+    var llnl_olcf_h = 0
+    var alcf_olcf_h = 0
+    var date = new Date('2022-02-12T00:00:00')
+    var llnl_alcf_index = 0
+    var olcf_alcf_index = 0
+    var llnl_olcf_index = 0
+    var alcf_olcf_index = 0
+    while (llnl_alcf_index < llnl_alcf.length || olcf_alcf_index < olcf_alcf.length || llnl_olcf_index < llnl_olcf.length || alcf_olcf.index < alcf_olcf.length) {
+        if (llnl_alcf_index < llnl_alcf.length && new Date(llnl_alcf[llnl_alcf_index][0].replace(" ", "T")) <= date) {
+            llnl_alcf_h = llnl_alcf[llnl_alcf_index][1] * 1024 * 1024 * 1024 * 1024 / (1000 * 1000 * 3600)
+            llnl_alcf_sum += llnl_alcf[llnl_alcf_index][1]
+            ++llnl_alcf_index
+        } else
+            llnl_alcf_h = 0
+        if (olcf_alcf_index < olcf_alcf.length && new Date(olcf_alcf[olcf_alcf_index][0].replace(" ", "T")) <= date) {
+            olcf_alcf_h = olcf_alcf[olcf_alcf_index][1] * 1024 * 1024 * 1024 * 1024 / (1000 * 1000 * 3600)
+            olcf_alcf_sum += olcf_alcf[olcf_alcf_index][1]
+            ++olcf_alcf_index
+        } else
+            olcf_alcf_h = 0
+        if (llnl_olcf_index < llnl_olcf.length && new Date(llnl_olcf[llnl_olcf_index][0].replace(" ", "T")) <= date) {
+            llnl_olcf_h = llnl_olcf[llnl_olcf_index][1] * 1024 * 1024 * 1024 * 1024 / (1000 * 1000 * 3600)
+            llnl_olcf_sum += llnl_olcf[llnl_olcf_index][1]
+            ++llnl_olcf_index
+        } else
+            llnl_olcf_h = 0
+        if (alcf_olcf_index < alcf_olcf.length && new Date(alcf_olcf[alcf_olcf_index][0].replace(" ", "T")) <= date) {
+            alcf_olcf_h = alcf_olcf[alcf_olcf_index][1] * 1024 * 1024 * 1024 * 1024 / (1000 * 1000 * 3600)
+            alcf_olcf_sum += alcf_olcf[alcf_olcf_index][1]
+            ++alcf_olcf_index
+        } else
+            alcf_olcf_h = 0
+        console.log(llnl_alcf_index, olcf_alcf_index, llnl_olcf_index, alcf_olcf_index)
+        data.addRow([date, llnl_alcf_sum + olcf_alcf_sum, llnl_olcf_sum + alcf_olcf_sum])
+        data_rate.addRow([date, llnl_alcf_h, olcf_alcf_h, llnl_olcf_h, alcf_olcf_h])
+        date = new Date(date.getTime())
+        date.setHours(date.getHours() + 1)
+    }
+    console.log(data)
+    var options = {
+        title: 'Progress of transfers',
+        legend: {position: 'top'},
+        lineWidth: 1,
+        hAxis: {
+            format: 'MMM d',
+            slantedText:true,
+            slantedTextAngle:90
+        },
+        vAxis: {
+            title: 'Data size (TB)'
+        }
+    }
+    var options_rate = {
+        title: 'Transfer rate (on an hourly basis)',
+        legend: {position: 'top'},
+        lineWidth: 1,
+        hAxis: {
+            format: 'MMM d',
+            slantedText:true,
+            slantedTextAngle:90
+        },
+        vAxis: {
+            title: 'Transfer rate (MBps)'
+        }
+    }
+
+    var chart = new google.visualization.LineChart(document.getElementById('progresschart'))
+    chart.draw(data, options)
+    var chart_rate = new google.visualization.LineChart(document.getElementById('ratechart'))
+    chart_rate.draw(data_rate, options_rate)
+}
+
+function human_rate(bps) {
+    if (!(typeof bps === 'number'))
+        return ''
+    var prefix = 'B/s'
+    if (bps >= 1000) {
+        prefix = 'kB/s'
+        bps /= 1000
+        if (bps >= 1000) {
+            prefix = 'MB/s'
+            bps /= 1000
+            if (bps >= 1000) {
+                prefix = 'GB/s'
+                bps /= 1000
+            }
+        }
+    }
+    if (bps >= 10)
+        return bps.toFixed(0) + ' ' + prefix
+    return bps.toFixed(2) + ' ' + prefix
+}
+
+class Table {
+    constructor(destination, transfers) {
+        this.destination = destination
+        this.transfers = transfers
+    }
+
+    add_header_rows() {
+        if (!this.table) {
+            $('<h3>Replication to ' + this.destination + '</h3>').appendTo('body')
+            $('<div style="padding-bottom:10px">ACTIVE, PAUSED and the latest SUCCEEDED transfers</dic>').appendTo('body')
+            // Create the table
+            this.table = $('<table>', {
+                id: 'table_' + this.destination,
+                cellspacing: '0',
+                cellpadding: '0',
+                border: "0"
+            }).appendTo('body')
+            $('<br/>').appendTo('body')
+
+            // Create the first head row
+            var row = '<tr><th align="center" style="padding: 1px">No</th><th>Datasets</th><th>From</th><th>Requested</th><th>Completed</th><th>Status</th><th>Directories</th><th>Files</th><th>Bytes Transferred</th><th>Faults</th><th>Rate</th></tr>'
+            this.table.append(row)
+        }
+    }
+
+    add_transfer_rows() {
+        // Insert transfer rate values to the tables cells
+        var id = 0
+        this.transfers.forEach(transfer => {
+            var row = '<tr>'
+            row += '<td>' + ++id + '</td>'
+            row += '<td>' + transfer.dataset + '</td>'
+            row += '<td>' + transfer.source + '</td>'
+            row += '<td>' + transfer.requested + '</td>'
+            row += '<td>' + transfer.completed + '</td>'
+            if (transfer.status == 'SUCCEEDED')
+                row += '<td bgcolor="#00cc00">SUCCEEDED</td>'
+            else if (transfer.status == 'ACTIVE' || transfer.status == 'PAUSED') {
+                var percentage;
+                if (typeof transfer.files !== 'undefined')
+                    percentage =  ' (' + (100 * transfer.files_transferred / transfer.files).toFixed(0) + '%)'
+                else
+                    percentage = ''
+                row += '<td>' + transfer.status + ' ' + percentage + '</td>'
+            } else
+                row += '<td>' + transfer.status + '</td>'
+            row += '<td class="td">' + transfer.directories + '</td>'
+            row += '<td class="td">' + transfer.files + '</td>'
+            row += '<td class="td">' + transfer.bytes + '</td>'
+            row += '<td class="td">' + transfer.faults + '</td>'
+            row += '<td class="td">' + human_rate(transfer.rate) + '</td>'
+            this.table.append(row)
+        })
+    }
+    add_links() {
+        $('<a href="' + this.destination + '">full list of datasets and transfers</a>').appendTo('body')
+        $('<br><br>').appendTo('body')
+    }
+}
+
+function create_tables(data) {
+    Object.keys(data).forEach(function(destination) {
+        console.log(destination, data[destination]);
+        let t = new Table(destination, data[destination])
+        tables.push(t)
+        t.add_header_rows()
+        t.add_transfer_rows()
+        t.add_links()
+    })
+}
+
+$(document).ready(function() {
+    const queryString = window.location.search;
+    $.get("api", function(data) {
+        create_tables(data)
+    })
+    .fail(function(error) {
+        console.log(error)
+    })
+})
+</script>
+</head>
+<body>
+<h2 style="display: inline-block">ESGF Climate Data Replication&nbsp;</h2>(<a href="faq" style="display: inline-block">What is this?</a>)
+<div id="piecharts" style="text-align: center">
+    <div id="piechart_ALCF" style="width: 500px; height: 400px; display: inline-block; vertical-align: top;"></div>
+    <div id="piechart_OLCF" style="width: 500px; height: 400px; display: inline-block; vertical-align: top;"></div>
+</div>
+<div id="progresschart" style="width: 100%; height: 600px; margin: 0 auto; text-align: center">
+</div>
+<div id="ratechart" style="width: 100%; height: 400px; margin: 0 auto; text-align: center">
+</div>
+<br>
+</body>
+</html>

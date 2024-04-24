@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="en">
+<head><title>ESGF Data Replication</title>
+<meta name="author" content="Lukasz Lacinski, Globus, University of Chicago">
+<style media="screen" type="text/css">
+body {
+    font-family: Tahoma, sans-serif;
+    font-size: 16px
+}
+</style>
+</head>
+<body>
+<div style="width:800px">
+<h2>FAQ: The ESGF Data Replication Project</h2>
+<h3>Q: What is ESGF?</h3>
+
+
+<p>A: The <A href="https://esgf.llnl.gov">Earth System Grid Federation</a> (ESGF) is an international collaboration of climate modeling centers that provide more than 17 petabytes of climate data vital to the work of the Intergovernmental Panel on Climate Change (IPCC).  
+
+
+<h3>Q: Why replicate ESGF data?</h3>
+
+
+<p>A: A centralized copy of all ESGF data is maintained at Lawrence Livermore National Laboratory (LLNL) in California. The US Department of Energy (DOE), which supports U.S. efforts on ESGF, wants to create copies at the Leadership Computing Facilities (LCFs) at Argonne National Laboratory (ALCF) in Illinois and Oak Ridge National Laboratory (OLCF) in Tennessee, in order to provide greater resilience to failure and to accelerate access to data by climate scientists. 
+
+
+<h3>Q: What is being done?</h3>
+
+
+<p>A: The ESGF data archive at LLNL comprises a total of 8.6 petabytes (8.6 x 1015 bytes) in more than 25 million files. A complete copy of those files needs to be replicated from LLNL to ALCF and OLCF.
+
+
+<h3>Q: How is the data replication being performed?</h3>
+
+
+<p>A: Data replication is being performed automatically using <a href="https://globus.org">Globus</a>, a high-speed, reliable 
+scientific data transfer and sharing service operated by the University of Chicago that 
+provides a universal data fabric across many research institutions. ESGF staff inform 
+Globus of the data to be replicated; Globus then orchestrates all authentication, data 
+transfer, transfer monitoring, failure recovery, and other tasks required to complete the 
+requested transfers. Under the covers, Globus makes use of specialized <a href="https://www.es.net/science-engagement/technical-and-consulting-services/data-transfer-nodes/">data transfer nodes</a> 
+(DTNs) at LLNL, ALCF, and OLCF which run Globus Connect software to 
+harness the massive parallelism in file systems and network interfaces required to move 
+data at high speeds over the network. The DTNs have high-speed connectivity to each 
+other via the <a href="http://www.es.net">ESnet</a> network, which interconnects the DOE National Laboratory complex.
+
+
+Files are transferred in batches: see the <a href="..">transfer status page</a>. Data sets are transferred first from LLNL to ALCF, and then onwards to OLCF, except in the event of interruptions, when that order may be reversed. Transfers from LLNL outwards are the rate-limiting step, due to limited DTN capacity; they can reach up to 1.5 GB/s, implying two to three months to move all data. Transfer rates between ALCF and OLCF can exceed 7 GB/s. 
+
+
+<h3>Q: Who is involved?</h3>
+
+
+<p>A: People from the following organizations are helping with this project:
+<ul>
+<li>Argonne Leadership Computing Facility</li>
+<li>Energy Sciences Network (ESnet)</li>
+<li>Globus, University of Chicago</li>
+<li>Lawrence Livermore National Laboratory</li>
+<li>Oak Ridge National Laboratory</li>
+</ul>
+</div>
+</body>
+</html>
