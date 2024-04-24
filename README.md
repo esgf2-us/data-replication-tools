@@ -7,9 +7,9 @@ The scripts handle the submission of Globus transfers and monitor their status a
 ## Database Setup
 The scripts utilize [SQLAlchemy](https://www.sqlalchemy.org/) to interface with a PostgreSQL database. Before running the scripts, it's necessary to set up the database and a user with appropriate privileges:
 ```
-postgres=# create database migration;
+postgres=# create database replication;
 postgres=# create user esgf with encrypted password 'esgf';
-postgres=# grant all privileges on database migration to esgf;
+postgres=# grant all privileges on database replication to esgf;
 ```
 
 ## Data Replication Tools Setup
