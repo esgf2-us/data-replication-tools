@@ -39,6 +39,6 @@ Once the tokens are obtained and securrely stored in the local store, `~/.esgf-r
 To automate the replication process, add two crontab entries to run `replicate.py` and `get_events.py` every 10 to 30 minutes:
 ```
 5,35 * * * * <path_to_the_local_repo>/data-replication-tools/src/replicate.sh
-5-59/10 * * * * <path_to_the_local_repo>/data-replication-tools/src/replicate.sh
+5-59/10 * * * * <path_to_the_local_repo>/data-replication-tools/src/get_events.sh
 ```
 Feel free to adjust the timing according to your specific needs.
